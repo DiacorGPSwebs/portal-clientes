@@ -103,12 +103,22 @@ export async function createTiloPayPayment(params: {
             };
         }
 
-        console.error('TiloPay Error response:', result);
-        return { success: false, error: result.description || 'Error al generar link de pago' };
+        // Detailed logging for Vercel
+        console.error('--- TiloPay API Error ---');
+        console.error('Status:', response.status);
+        console.error('Payload Sent:', { ...payload, key: '***' }); // Hide key in logs
+        console.error('Response:', JSON.stringify(result, null, 2));
+        console.error('--------------------------');
+
+        return {
+            success: false,
+            error: result.description || `Error de TiloPay: ${result.code || 'Desconocido'}`
+        };
 
     } catch (error: any) {
-        console.error('Error in createTiloPayPayment:', error);
-        return { success: false, error: 'Error interno del servidor' };
+        console.error('--- Critical Error in createTiloPayPayment ---');
+        console.error(error);
+        return { success: false, error: 'Error interno al comunicarse con la pasarela' };
     }
 }
 
