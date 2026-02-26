@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
     title: "Portal de Clientes - Consulta tu Deuda",
     description: "Consulta tus facturas pendientes y gestiona tus pagos de forma rápida y segura.",
+    icons: {
+        icon: "/logo.png",
+    },
 };
 
 export default function RootLayout({
