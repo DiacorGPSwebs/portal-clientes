@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-cyan: #00AEEF;
+  --color-brand-red: #ED1C24;
+}
+
+:root {
+  --brand-cyan: #00AEEF;
+  --brand-red: #ED1C24;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom Utilities */
+@utility bg-brand-gradient {
+  background: linear-gradient(135deg, #00AEEF 0%, #0077B6 100%);
+}
+
+@utility card-container {
+  background-color: white;
+  border-radius: 2.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
