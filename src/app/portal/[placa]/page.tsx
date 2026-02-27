@@ -150,16 +150,22 @@ export default function PortalDashboard() {
             doc.text(`Dirección: ${cliente?.Direccion || 'Panamá'}`, 14, 70);
 
             // Table
-            const items = fac.Cotizaciones?.items || [
-                { description: 'Servicios de Rastreo GPS', quantity: 1, price: fac.monto_subtotal }
-            ];
+            const monthName = format(new Date(fac.fecha_emision), 'MMMM', { locale: es });
+            const year = format(new Date(fac.fecha_emision), 'yyyy');
+            const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
-            const tableBody = items.map((item: any) => [
-                item.description,
-                item.quantity,
-                `$${Number(item.price).toFixed(2)}`,
-                `$${(item.quantity * item.price).toFixed(2)}`
-            ]);
+            const description = `Mensualidad de servicio de rastreo GPS ${capitalizedMonth} ${year}`;
+            const quantity = cliente?.Cantidad_Vehiculo || 1;
+            const price = cliente?.Tarifa || fac.monto_subtotal;
+
+            const tableBody = [
+                [
+                    description,
+                    quantity,
+                    `$${Number(price).toFixed(2)}`,
+                    `$${(quantity * price).toFixed(2)}`
+                ]
+            ];
 
             autoTable(doc, {
                 startY: 80,
@@ -198,8 +204,20 @@ export default function PortalDashboard() {
     function InvoicePreviewModal() {
         if (!isPreviewOpen || !selectedFactura) return null;
 
-        const items = selectedFactura.Cotizaciones?.items || [
-            { description: 'Servicio de Rastreo GPS', quantity: 1, price: selectedFactura.monto_subtotal }
+        const monthName = format(new Date(selectedFactura.fecha_emision), 'MMMM', { locale: es });
+        const year = format(new Date(selectedFactura.fecha_emision), 'yyyy');
+        const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
+
+        const displayDescription = `Mensualidad de servicio de rastreo GPS ${capitalizedMonth} ${year}`;
+        const displayQuantity = cliente?.Cantidad_Vehiculo || 1;
+        const displayPrice = cliente?.Tarifa || selectedFactura.monto_subtotal;
+
+        const items = [
+            {
+                description: displayDescription,
+                quantity: displayQuantity,
+                price: displayPrice
+            }
         ];
 
         return (

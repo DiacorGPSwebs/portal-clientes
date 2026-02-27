@@ -225,6 +225,8 @@ export async function getClientByPlate(plate: string) {
                     id: client.id,
                     Nombre_Completo: client.Nombre_Completo,
                     Correo: client.Correo,
+                    Tarifa: client.Tarifa || 0,
+                    Cantidad_Vehiculo: client.Cantidad_Vehiculo || 0,
                 },
                 vehiculo: {
                     Placas: vehicle.Placas,
