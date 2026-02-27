@@ -12,6 +12,8 @@
     "@supabase/supabase-js": "latest",
     "clsx": "latest",
     "date-fns": "latest",
+    "jspdf": "^4.2.0",
+    "jspdf-autotable": "^5.0.7",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",

@@ -163,10 +163,16 @@ export async function getClientByPlate(plate: string) {
             return { success: false, error: 'Cliente no encontrado' };
         }
 
-        // 4. Fetch Invoices
+        // 4. Fetch Invoices with Items
         const { data: invoices, error: iError } = await supabase
             .from('Facturas')
-            .select('*')
+            .select(`
+                *,
+                Cotizaciones (
+                    items,
+                    numero_cotizacion
+                )
+            `)
             .eq('cliente_id', client.id)
             .order('fecha_emision', { ascending: false });
 

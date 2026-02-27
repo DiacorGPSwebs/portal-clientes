@@ -17,6 +17,7 @@ import {
     Phone,
     X,
     ShieldCheck,
+    Eye,
 } from 'lucide-react';
 import { getClientByPlate, createTiloPayPayment } from '@/lib/actions';
 import { format } from 'date-fns';
@@ -32,6 +33,11 @@ export default function PortalDashboard() {
     const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
     const [paymentAmountType, setPaymentAmountType] = useState<'full' | '60'>('full');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+    // Invoice Preview State
+    const [selectedFactura, setSelectedFactura] = useState<any>(null);
+    const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+    const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
@@ -107,9 +113,205 @@ export default function PortalDashboard() {
         }
     };
 
+    const handleDownloadPdf = async (fac: any) => {
+        setIsGeneratingPdf(true);
+        try {
+            const jsPDF = (await import('jspdf')).default;
+            const autoTable = (await import('jspdf-autotable')).default;
+            const doc = new jsPDF();
+            const date = format(new Date(fac.fecha_emision), 'dd/MM/yyyy');
+
+            // Header - DIACOR BLUE
+            doc.setFillColor(0, 174, 239);
+            doc.rect(0, 0, 210, 40, 'F');
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(24);
+            doc.setFont('helvetica', 'bold');
+            doc.text('DIACOR GPS', 14, 25);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.text('Panamá, Rep. de Panamá', 14, 33);
+
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.text('FACTURA', 150, 25);
+            doc.setFontSize(10);
+            doc.text(`Número: ${fac.numero_factura}`, 150, 33);
+            doc.text(`Fecha: ${date}`, 150, 37);
+
+            // Client Info
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.text('FACTURAR A:', 14, 55);
+            doc.setFont('helvetica', 'normal');
+            doc.text(cliente?.Nombre_Completo || 'Cliente General', 14, 60);
+            doc.text(`Identificación: ${cliente?.RUC_Cedula || 'N/A'}`, 14, 65);
+            doc.text(`Dirección: ${cliente?.Direccion || 'Panamá'}`, 14, 70);
+
+            // Table
+            const items = fac.Cotizaciones?.items || [
+                { description: 'Servicios de Rastreo GPS', quantity: 1, price: fac.monto_subtotal }
+            ];
+
+            const tableBody = items.map((item: any) => [
+                item.description,
+                item.quantity,
+                `$${Number(item.price).toFixed(2)}`,
+                `$${(item.quantity * item.price).toFixed(2)}`
+            ]);
+
+            autoTable(doc, {
+                startY: 80,
+                head: [['Descripción', 'Cant.', 'Precio', 'Total']],
+                body: tableBody,
+                headStyles: { fillColor: [0, 174, 239], textColor: [255, 255, 255] },
+                styles: { font: 'helvetica', fontSize: 9 }
+            });
+
+            const finalY = (doc as any).lastAutoTable.finalY + 10;
+            doc.setFont('helvetica', 'normal');
+            doc.text('Subtotal:', 140, finalY);
+            doc.text(`$${fac.monto_subtotal.toFixed(2)}`, 190, finalY, { align: 'right' });
+            doc.text('ITBMS (7%):', 140, finalY + 7);
+            doc.text(`$${fac.monto_itbms.toFixed(2)}`, 190, finalY + 7, { align: 'right' });
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(12);
+            doc.text('TOTAL:', 140, finalY + 16);
+            doc.text(`$${fac.monto_total.toFixed(2)}`, 190, finalY + 16, { align: 'right' });
+
+            // Footer
+            doc.setFontSize(8);
+            doc.setFont('helvetica', 'italic');
+            doc.setTextColor(150, 150, 150);
+            doc.text('Este documento es un comprobante de pago generado por el Portal de Clientes DIACOR.', 105, 280, { align: 'center' });
+
+            doc.save(`Factura_${fac.numero_factura}.pdf`);
+        } catch (err: any) {
+            console.error('Error generating PDF:', err);
+            alert('Error al generar el PDF. Por favor intenta de nuevo.');
+        } finally {
+            setIsGeneratingPdf(false);
+        }
+    };
+
+    function InvoicePreviewModal() {
+        if (!isPreviewOpen || !selectedFactura) return null;
+
+        const items = selectedFactura.Cotizaciones?.items || [
+            { description: 'Servicio de Rastreo GPS', quantity: 1, price: selectedFactura.monto_subtotal }
+        ];
+
+        return (
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
+                <div className="bg-white text-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in duration-300">
+                    <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-lg bg-[#00AEEF]/10 flex items-center justify-center text-[#00AEEF]">
+                                <Eye size={18} />
+                            </div>
+                            <h2 className="font-black uppercase italic tracking-tighter text-gray-700">Previa de Factura</h2>
+                        </div>
+                        <button onClick={() => setIsPreviewOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+                            <X size={20} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-8 md:p-12 text-left">
+                        <div className="max-w-xl mx-auto space-y-8">
+                            <div className="flex justify-between items-start">
+                                <div>
+                                    <h3 className="text-3xl font-black text-[#00AEEF] tracking-tighter italic leading-none">DIACOR GPS</h3>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-2">Panamá, Rep. de Panamá</p>
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.1em]">Email: info@diacorgps.com</p>
+                                </div>
+                                <div className="text-right">
+                                    <h4 className="text-xl font-black text-gray-800 uppercase tracking-widest italic">Factura</h4>
+                                    <p className="text-sm font-black text-[#00AEEF]">{selectedFactura.numero_factura}</p>
+                                    <div className="mt-4 text-[9px] text-gray-400 uppercase font-black tracking-widest">Fecha de Emisión</div>
+                                    <p className="text-sm font-bold text-gray-700">{format(new Date(selectedFactura.fecha_emision), 'dd MMMM, yyyy', { locale: es })}</p>
+                                </div>
+                            </div>
+
+                            <div className="h-px bg-gray-100" />
+
+                            <div className="grid grid-cols-2 gap-8">
+                                <div>
+                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-2">Facturar a</p>
+                                    <p className="font-black text-gray-800 text-lg leading-tight uppercase italic">{cliente.Nombre_Completo}</p>
+                                    <p className="text-xs font-bold text-gray-400 mt-1">{cliente.RUC_Cedula || 'RUC/Cédula no registradas'}</p>
+                                    <p className="text-xs font-bold text-gray-400 uppercase">{cliente.Direccion || 'Ciudad de Panamá, Panamá'}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-2">Estado</p>
+                                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-red-50 text-[#ED1C24] border border-red-100">
+                                        Pendiente
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="mt-10">
+                                <table className="w-full text-left font-sans">
+                                    <thead>
+                                        <tr className="border-b-2 border-gray-900 text-[9px] font-black uppercase tracking-widest font-sans">
+                                            <th className="pb-3 text-gray-400 font-black">Descripción</th>
+                                            <th className="pb-3 text-center text-gray-400 w-16 font-black">Cant.</th>
+                                            <th className="pb-3 text-right text-gray-400 w-24 font-black">Precio</th>
+                                            <th className="pb-3 text-right text-gray-400 w-24 font-black">Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-50 border-b border-gray-100">
+                                        {items.map((item: any, idx: number) => (
+                                            <tr key={idx} className="text-sm">
+                                                <td className="py-4 font-bold text-gray-700">{item.description}</td>
+                                                <td className="py-4 text-center text-gray-500 font-bold">{item.quantity}</td>
+                                                <td className="py-4 text-right text-gray-500 font-bold">${item.price.toFixed(2)}</td>
+                                                <td className="py-4 text-right font-black text-gray-800">${(item.quantity * item.price).toFixed(2)}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div className="flex justify-end pt-6">
+                                <div className="w-[200px] space-y-3">
+                                    <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                        <span>Subtotal</span>
+                                        <span className="text-gray-900 font-black">${selectedFactura.monto_subtotal?.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                        <span>ITBMS (7%)</span>
+                                        <span className="text-gray-900 font-black">${selectedFactura.monto_itbms?.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between pt-4 border-t-2 border-gray-900 mt-2">
+                                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-900">Total</span>
+                                        <span className="text-2xl font-black italic tracking-tighter text-[#00AEEF] leading-none">${selectedFactura.monto_total?.toFixed(2)}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="p-8 bg-gray-50 border-t flex flex-col sm:flex-row justify-end gap-3 px-12">
+                        <button onClick={() => setIsPreviewOpen(false)} className="px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-200 transition-all font-sans">
+                            Cerrar
+                        </button>
+                        <button
+                            disabled={isGeneratingPdf}
+                            onClick={() => handleDownloadPdf(selectedFactura)}
+                            className="px-10 py-4 rounded-xl bg-[#00AEEF] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0088CC] transition-all shadow-xl shadow-cyan-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 font-sans"
+                        >
+                            {isGeneratingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
+                            <span>Descargar PDF</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-gray-50 text-gray-900 pb-20 font-sans">
-            {/* Premium Header */}
             <header className="bg-brand-gradient text-white sticky top-0 z-20 shadow-lg px-6 py-4">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -138,7 +340,6 @@ export default function PortalDashboard() {
             </header>
 
             <main className="max-w-6xl mx-auto px-6 py-10 space-y-10">
-                {/* Welcome & Quick Nav */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div className="space-y-1">
                         <h1 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight uppercase leading-tight">
@@ -148,10 +349,8 @@ export default function PortalDashboard() {
                     </div>
                 </div>
 
-                {/* Main Content Grid */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                     <div className="lg:col-span-2 space-y-10">
-                        {/* Hero Debt Card */}
                         <section className="relative overflow-hidden rounded-[2.5rem] bg-brand-gradient p-10 text-white shadow-2xl shadow-cyan-500/20">
                             <div className="relative z-10 space-y-4">
                                 <span className="text-white/70 font-black uppercase tracking-[0.2em] text-xs flex items-center gap-2">
@@ -180,7 +379,6 @@ export default function PortalDashboard() {
                             </div>
                         </section>
 
-                        {/* Invoices List */}
                         <div className="space-y-8">
                             <h2 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-3 text-gray-800">
                                 <div className="w-8 h-8 rounded-lg bg-[#00AEEF]/10 flex items-center justify-center text-[#00AEEF]">
@@ -212,7 +410,10 @@ export default function PortalDashboard() {
 
                                             <div className="mt-4 flex items-center justify-between border-t border-gray-50 pt-4">
                                                 <span className="text-[10px] font-black uppercase text-gray-300 tracking-widest tracking-tighter">Total original: ${inv.monto_total.toFixed(2)}</span>
-                                                <button className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider text-[#00AEEF] hover:text-[#0088CC]">
+                                                <button
+                                                    onClick={() => { setSelectedFactura(inv); setIsPreviewOpen(true); }}
+                                                    className="flex items-center space-x-2 text-xs font-black uppercase tracking-wider text-[#00AEEF] hover:text-[#0088CC]"
+                                                >
                                                     <Download size={14} />
                                                     <span>Descargar PDF</span>
                                                 </button>
@@ -231,7 +432,6 @@ export default function PortalDashboard() {
                     </div>
 
                     <div className="space-y-10">
-                        {/* Vehicle List */}
                         <div className="space-y-6">
                             <div className="flex items-center justify-between px-1">
                                 <h2 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-3 text-gray-800">
@@ -280,7 +480,6 @@ export default function PortalDashboard() {
                             </div>
                         </div>
 
-                        {/* Payment Methods */}
                         <div className="space-y-8">
                             <h2 className="text-xl font-black uppercase italic tracking-tighter flex items-center gap-3 text-gray-800">
                                 <div className="w-8 h-8 rounded-lg bg-[#ED1C24]/10 flex items-center justify-center text-[#ED1C24]">
@@ -309,7 +508,7 @@ export default function PortalDashboard() {
                                     </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-gray-50 flex flex-col items-center space-y-4">
+                                <div className="pt-6 border-t border-gray-50 flex flex-col items-center space-y-4 text-left">
                                     <p className="text-[10px] text-gray-400 font-bold text-center uppercase leading-relaxed tracking-wider">
                                         Envía el comprobante para validar tu pago
                                     </p>
@@ -328,7 +527,7 @@ export default function PortalDashboard() {
                 </div>
             </main>
 
-            {/* Payment Modal */}
+            {/* Modals */}
             {isPaymentModalOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-gray-900/40 backdrop-blur-md animate-in fade-in duration-300">
                     <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden relative animate-in zoom-in duration-300">
@@ -339,7 +538,7 @@ export default function PortalDashboard() {
                             <X size={20} />
                         </button>
 
-                        <div className="p-10 space-y-10">
+                        <div className="p-10 space-y-10 text-left">
                             <div className="space-y-2">
                                 <h3 className="text-3xl font-black italic uppercase tracking-tighter text-gray-900 leading-none">
                                     Finalizar<br /><span className="text-[#00AEEF]">Tu Pago</span>
@@ -347,7 +546,6 @@ export default function PortalDashboard() {
                                 <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Elige el monto y el método de pago</p>
                             </div>
 
-                            {/* Amount Selector */}
                             <div className="grid grid-cols-1 gap-4">
                                 <button
                                     onClick={() => setPaymentAmountType('full')}
@@ -384,8 +582,7 @@ export default function PortalDashboard() {
                                 </button>
                             </div>
 
-                            {/* Methods */}
-                            <div className="space-y-4 pt-6 border-t border-gray-50">
+                            <div className="space-y-4 pt-6 border-t border-gray-50 font-sans">
                                 <button
                                     disabled={isProcessingPayment}
                                     onClick={handleTiloPayPayment}
@@ -408,6 +605,8 @@ export default function PortalDashboard() {
                     </div>
                 </div>
             )}
+
+            <InvoicePreviewModal />
 
             <footer className="max-w-6xl mx-auto px-6 pt-10 border-t border-gray-100 text-center opacity-30">
                 <p className="text-[9px] font-black uppercase tracking-[0.5em]">DIACOR GPS • PANAMÁ</p>
