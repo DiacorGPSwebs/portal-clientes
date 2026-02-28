@@ -187,33 +187,33 @@ export default function PortalDashboard() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 md:p-12 text-left bg-gray-100/50">
-                        <div ref={invoiceRef} className="max-w-xl mx-auto space-y-8 bg-white p-8 md:p-12 shadow-sm rounded-lg">
+                        <div ref={invoiceRef} className="max-w-xl mx-auto space-y-8 bg-white p-8 md:p-12 shadow-sm rounded-lg" style={{ backgroundColor: 'white' }}>
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-3xl font-black text-[#00AEEF] tracking-tighter italic leading-none">DIACOR GPS</h3>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] mt-2">Panamá, Rep. de Panamá</p>
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.1em]">Email: info@diacorgps.com</p>
+                                    <p className="text-[10px] text-[#9ca3af] font-bold uppercase tracking-[0.2em] mt-2">Panamá, Rep. de Panamá</p>
+                                    <p className="text-[10px] text-[#9ca3af] font-bold uppercase tracking-[0.1em]">Email: info@diacorgps.com</p>
                                 </div>
                                 <div className="text-right">
-                                    <h4 className="text-xl font-black text-gray-800 uppercase tracking-widest italic">Factura</h4>
+                                    <h4 className="text-xl font-black text-[#1f2937] uppercase tracking-widest italic">Factura</h4>
                                     <p className="text-sm font-black text-[#00AEEF]">{selectedFactura.numero_factura}</p>
-                                    <div className="mt-4 text-[9px] text-gray-400 uppercase font-black tracking-widest">Fecha de Emisión</div>
-                                    <p className="text-sm font-bold text-gray-700">{format(new Date(selectedFactura.fecha_emision), 'dd MMMM, yyyy', { locale: es })}</p>
+                                    <div className="mt-4 text-[9px] text-[#9ca3af] uppercase font-black tracking-widest">Fecha de Emisión</div>
+                                    <p className="text-sm font-bold text-[#374151]">{format(new Date(selectedFactura.fecha_emision), 'dd MMMM, yyyy', { locale: es })}</p>
                                 </div>
                             </div>
 
-                            <div className="h-px bg-gray-100" />
+                            <div className="h-px bg-[#f3f4f6]" />
 
                             <div className="grid grid-cols-2 gap-8">
                                 <div>
-                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-2">Facturar a</p>
-                                    <p className="font-black text-gray-800 text-lg leading-tight uppercase italic">{cliente.Nombre_Completo}</p>
-                                    <p className="text-xs font-bold text-gray-400 mt-1">{cliente.RUC_Cedula || 'RUC/Cédula no registradas'}</p>
-                                    <p className="text-xs font-bold text-gray-400 uppercase">{cliente.Direccion || 'Ciudad de Panamá, Panamá'}</p>
+                                    <p className="text-[9px] text-[#9ca3af] uppercase font-black tracking-widest mb-2">Facturar a</p>
+                                    <p className="font-black text-[#1f2937] text-lg leading-tight uppercase italic">{cliente.Nombre_Completo}</p>
+                                    <p className="text-xs font-bold text-[#9ca3af] mt-1">{cliente.RUC_Cedula || 'RUC/Cédula no registradas'}</p>
+                                    <p className="text-xs font-bold text-[#9ca3af] uppercase">{cliente.Direccion || 'Ciudad de Panamá, Panamá'}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-2">Estado</p>
-                                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-red-50 text-[#ED1C24] border border-red-100">
+                                    <p className="text-[9px] text-[#9ca3af] uppercase font-black tracking-widest mb-2">Estado</p>
+                                    <span className="inline-block px-3 py-1 rounded-full text-[10px] font-black tracking-widest uppercase bg-[#fef2f2] text-[#ED1C24] border border-[#fee2e2]">
                                         Pendiente
                                     </span>
                                 </div>
@@ -222,20 +222,20 @@ export default function PortalDashboard() {
                             <div className="mt-10">
                                 <table className="w-full text-left font-sans">
                                     <thead>
-                                        <tr className="border-b-2 border-gray-900 text-[9px] font-black uppercase tracking-widest font-sans">
-                                            <th className="pb-3 text-gray-400 font-black">Descripción</th>
-                                            <th className="pb-3 text-center text-gray-400 w-16 font-black">Cant.</th>
-                                            <th className="pb-3 text-right text-gray-400 w-24 font-black">Precio</th>
-                                            <th className="pb-3 text-right text-gray-400 w-24 font-black">Total</th>
+                                        <tr className="border-b-2 border-[#111827] text-[9px] font-black uppercase tracking-widest font-sans">
+                                            <th className="pb-3 text-[#9ca3af] font-black">Descripción</th>
+                                            <th className="pb-3 text-center text-[#9ca3af] w-16 font-black">Cant.</th>
+                                            <th className="pb-3 text-right text-[#9ca3af] w-24 font-black">Precio</th>
+                                            <th className="pb-3 text-right text-[#9ca3af] w-24 font-black">Total</th>
                                         </tr>
                                     </thead>
-                                    <tbody className="divide-y divide-gray-50 border-b border-gray-100">
+                                    <tbody className="divide-y divide-[#f9fafb] border-b border-[#f3f4f6]">
                                         {items.map((item: any, idx: number) => (
                                             <tr key={idx} className="text-sm">
-                                                <td className="py-4 font-bold text-gray-700">{item.descripcion || item.description}</td>
-                                                <td className="py-4 text-center text-gray-500 font-bold">{item.cantidad || item.quantity}</td>
-                                                <td className="py-4 text-right text-gray-500 font-bold">${(item.precio || item.price || 0).toFixed(2)}</td>
-                                                <td className="py-4 text-right font-black text-gray-800">${(item.total || (item.cantidad * item.price) || 0).toFixed(2)}</td>
+                                                <td className="py-4 font-bold text-[#374151]">{item.descripcion || item.description}</td>
+                                                <td className="py-4 text-center text-[#6b7280] font-bold">{item.cantidad || item.quantity}</td>
+                                                <td className="py-4 text-right text-[#6b7280] font-bold">${(item.precio || item.price || 0).toFixed(2)}</td>
+                                                <td className="py-4 text-right font-black text-[#1f2937]">${(item.total || (item.cantidad * item.price) || 0).toFixed(2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -244,16 +244,16 @@ export default function PortalDashboard() {
 
                             <div className="flex justify-end pt-6">
                                 <div className="w-[200px] space-y-3">
-                                    <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                    <div className="flex justify-between text-xs font-bold text-[#9ca3af] uppercase tracking-widest">
                                         <span>Subtotal</span>
-                                        <span className="text-gray-900 font-black">${selectedFactura.monto_subtotal?.toFixed(2)}</span>
+                                        <span className="text-[#111827] font-black">${selectedFactura.monto_subtotal?.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between text-xs font-bold text-gray-400 uppercase tracking-widest">
+                                    <div className="flex justify-between text-xs font-bold text-[#9ca3af] uppercase tracking-widest">
                                         <span>ITBMS (7%)</span>
-                                        <span className="text-gray-900 font-black">${selectedFactura.monto_itbms?.toFixed(2)}</span>
+                                        <span className="text-[#111827] font-black">${selectedFactura.monto_itbms?.toFixed(2)}</span>
                                     </div>
-                                    <div className="flex justify-between pt-4 border-t-2 border-gray-900 mt-2">
-                                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-900">Total</span>
+                                    <div className="flex justify-between pt-4 border-t-2 border-[#111827] mt-2">
+                                        <span className="text-xs font-black uppercase tracking-[0.2em] text-[#111827]">Total</span>
                                         <span className="text-2xl font-black italic tracking-tighter text-[#00AEEF] leading-none">${selectedFactura.monto_total?.toFixed(2)}</span>
                                     </div>
                                 </div>
