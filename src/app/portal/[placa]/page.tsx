@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import { useParams, useRouter } from 'next/navigation';
 import {
     FileText,
@@ -116,28 +117,39 @@ export default function PortalDashboard() {
     };
 
     const handleDownloadPdf = async (fac: any) => {
-        if (!invoiceRef.current) return;
+        if (!invoiceRef.current) {
+            console.error('Invoice ref is null, cannot generate PDF');
+            return;
+        }
         setIsGeneratingPdf(true);
         try {
-            const jsPDF = (await import('jspdf')).default;
+            console.log('Starting PDF generation for:', fac.numero_factura);
+
+            // Wait a bit to ensure styles are applied
+            await new Promise(resolve => setTimeout(resolve, 500));
+
             const canvas = await html2canvas(invoiceRef.current, {
-                scale: 3, // Higher scale for better quality
+                scale: 2, // Scale 2 is safer for memory
                 useCORS: true,
-                logging: false,
-                backgroundColor: '#ffffff',
-                windowWidth: 800 // Consistent width for capture
+                allowTaint: true,
+                logging: true,
+                backgroundColor: '#ffffff'
             });
 
-            const imgData = canvas.toDataURL('image/png');
+            console.log('Canvas generated successfully');
+            const imgData = canvas.toDataURL('image/png', 1.0);
+
+            // Note: jsPDF type might need to be handled if it's not a constructor in some environments
             const pdf = new jsPDF('p', 'mm', 'a4');
             const pdfWidth = pdf.internal.pageSize.getWidth();
             const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
             pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
             pdf.save(`Factura_${fac.numero_factura}.pdf`);
+            console.log('PDF saved successfully');
         } catch (err: any) {
-            console.error('Error generating PDF:', err);
-            alert('Error al generar el PDF. Por favor intenta de nuevo.');
+            console.error('CRITICAL: Error generating PDF with html2canvas:', err);
+            alert(`Error al generar el PDF: ${err.message || 'Error desconocido'}`);
         } finally {
             setIsGeneratingPdf(false);
         }
