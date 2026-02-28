@@ -149,23 +149,21 @@ export default function PortalDashboard() {
             doc.text(`Identificación: ${cliente?.RUC_Cedula || 'N/A'}`, 14, 65);
             doc.text(`Dirección: ${cliente?.Direccion || 'Panamá'}`, 14, 70);
 
-            // Table
-            const monthName = format(new Date(fac.fecha_emision), 'MMMM', { locale: es });
-            const year = format(new Date(fac.fecha_emision), 'yyyy');
-            const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
-            const description = `Mensualidad de servicio de rastreo GPS ${capitalizedMonth} ${year}`;
-            const quantity = cliente?.Cantidad_Vehiculo || 1;
-            const price = cliente?.Tarifa || fac.monto_subtotal;
-
-            const tableBody = [
-                [
-                    description,
-                    quantity,
-                    `$${Number(price).toFixed(2)}`,
-                    `$${(quantity * price).toFixed(2)}`
-                ]
+            const finalItems = fac.items && fac.items.length > 0 ? fac.items : [
+                {
+                    descripcion: `Mensualidad de servicio de rastreo GPS ${capitalizedMonth} ${year}`,
+                    cantidad: cliente?.Cantidad_Vehiculo || 1,
+                    precio: cliente?.Tarifa || fac.monto_subtotal,
+                    total: fac.monto_subtotal
+                }
             ];
+
+            const tableBody = finalItems.map((item: any) => [
+                item.descripcion,
+                item.cantidad,
+                `$${Number(item.precio).toFixed(2)}`,
+                `$${Number(item.total).toFixed(2)}`
+            ]);
 
             autoTable(doc, {
                 startY: 80,
@@ -204,19 +202,11 @@ export default function PortalDashboard() {
     function InvoicePreviewModal() {
         if (!isPreviewOpen || !selectedFactura) return null;
 
-        const monthName = format(new Date(selectedFactura.fecha_emision), 'MMMM', { locale: es });
-        const year = format(new Date(selectedFactura.fecha_emision), 'yyyy');
-        const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
-
-        const displayDescription = `Mensualidad de servicio de rastreo GPS ${capitalizedMonth} ${year}`;
-        const displayQuantity = cliente?.Cantidad_Vehiculo || 1;
-        const displayPrice = cliente?.Tarifa || selectedFactura.monto_subtotal;
-
-        const items = [
+        const items = selectedFactura.items && selectedFactura.items.length > 0 ? selectedFactura.items : [
             {
-                description: displayDescription,
-                quantity: displayQuantity,
-                price: displayPrice
+                description: `Mensualidad de servicio de rastreo GPS ${capitalizedMonth} ${year}`,
+                quantity: cliente?.Cantidad_Vehiculo || 1,
+                price: cliente?.Tarifa || selectedFactura.monto_subtotal
             }
         ];
 
@@ -281,10 +271,10 @@ export default function PortalDashboard() {
                                     <tbody className="divide-y divide-gray-50 border-b border-gray-100">
                                         {items.map((item: any, idx: number) => (
                                             <tr key={idx} className="text-sm">
-                                                <td className="py-4 font-bold text-gray-700">{item.description}</td>
-                                                <td className="py-4 text-center text-gray-500 font-bold">{item.quantity}</td>
-                                                <td className="py-4 text-right text-gray-500 font-bold">${item.price.toFixed(2)}</td>
-                                                <td className="py-4 text-right font-black text-gray-800">${(item.quantity * item.price).toFixed(2)}</td>
+                                                <td className="py-4 font-bold text-gray-700">{item.descripcion || item.description}</td>
+                                                <td className="py-4 text-center text-gray-500 font-bold">{item.cantidad || item.quantity}</td>
+                                                <td className="py-4 text-right text-gray-500 font-bold">${(item.precio || item.price || 0).toFixed(2)}</td>
+                                                <td className="py-4 text-right font-black text-gray-800">${(item.total || (item.cantidad * item.price) || 0).toFixed(2)}</td>
                                             </tr>
                                         ))}
                                     </tbody>
