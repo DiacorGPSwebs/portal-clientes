@@ -42,6 +42,16 @@ export default function PortalDashboard() {
     const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
     const invoiceRef = useRef<HTMLDivElement>(null);
 
+    const formatDateLocal = (dateStr: string, formatStr: string = 'dd MMMM, yyyy') => {
+        if (!dateStr) return '';
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return dateStr;
+        const y = parseInt(parts[0]);
+        const m = parseInt(parts[1]) - 1;
+        const d = parseInt(parts[2]);
+        return format(new Date(y, m, d), formatStr, { locale: es });
+    };
+
     useEffect(() => {
         async function fetchData() {
             if (!placa) return;
@@ -180,8 +190,8 @@ export default function PortalDashboard() {
     function InvoicePreviewModal() {
         if (!isPreviewOpen || !selectedFactura) return null;
 
-        const monthName = format(new Date(selectedFactura.fecha_emision), 'MMMM', { locale: es });
-        const year = format(new Date(selectedFactura.fecha_emision), 'yyyy');
+        const monthName = formatDateLocal(selectedFactura?.fecha_emision, 'MMMM');
+        const year = formatDateLocal(selectedFactura?.fecha_emision, 'yyyy');
         const capitalizedMonth = monthName.charAt(0).toUpperCase() + monthName.slice(1);
 
         const items = selectedFactura.items && selectedFactura.items.length > 0 ? selectedFactura.items : [
@@ -220,7 +230,7 @@ export default function PortalDashboard() {
                                     <h4 className="text-xl font-black text-[#1f2937] uppercase tracking-widest italic">Factura</h4>
                                     <p className="text-sm font-black text-[#00AEEF]">{selectedFactura.numero_factura}</p>
                                     <div className="mt-4 text-[9px] text-[#9ca3af] uppercase font-black tracking-widest">Fecha de Emisión</div>
-                                    <p className="text-sm font-bold text-[#374151]">{format(new Date(selectedFactura.fecha_emision), 'dd MMMM, yyyy', { locale: es })}</p>
+                                    <p className="text-sm font-bold text-[#374151]">{formatDateLocal(selectedFactura.fecha_emision)}</p>
                                 </div>
                             </div>
 
@@ -391,7 +401,7 @@ export default function PortalDashboard() {
                                                         </span>
                                                     </div>
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                        Vence el {format(new Date(inv.fecha_vencimiento), "d MMM, yyyy", { locale: es })}
+                                                        Vence el {formatDateLocal(inv.fecha_vencimiento, 'd MMM, yyyy')}
                                                     </p>
                                                 </div>
                                                 <div className="text-left sm:text-right">

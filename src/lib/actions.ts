@@ -58,7 +58,7 @@ export async function createTiloPayPayment(params: {
         const payload = {
             amount: monto.toFixed(2),
             currency: 'USD',
-            redirect: `${NEXT_PUBLIC_BASE_URL}/api/payment/tilopay/callback?placa=${placa}&order=${orderNumber}`,
+            redirect: `${NEXT_PUBLIC_BASE_URL}/api/payment/tilopay/callback?placa=${placa}&order=${orderNumber}&amount=${monto.toFixed(2)}`,
             key: TILOPAY_KEY,
             billToFirstName: firstName,
             billToLastName: lastName,
