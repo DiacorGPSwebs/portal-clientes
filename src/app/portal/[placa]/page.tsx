@@ -133,7 +133,29 @@ export default function PortalDashboard() {
                 useCORS: true,
                 allowTaint: true,
                 logging: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                onclone: (clonedDoc) => {
+                    // Force white background for the capture container in the clone
+                    const captureEl = clonedDoc.querySelector('[data-pdf-content="true"]') as HTMLElement;
+                    if (captureEl) {
+                        captureEl.style.backgroundColor = '#ffffff';
+                        captureEl.style.boxShadow = 'none';
+                    }
+
+                    // Purge all modern CSS functions that html2canvas can't parse
+                    const styleTags = clonedDoc.getElementsByTagName('style');
+                    for (let i = 0; i < styleTags.length; i++) {
+                        let css = styleTags[i].innerHTML;
+                        if (css.includes('lab(') || css.includes('oklch(') || css.includes('shadow')) {
+                            // Replace modern colors with black/safe hex for the capture
+                            css = css.replace(/lab\([^)]+\)/g, '#000000');
+                            css = css.replace(/oklch\([^)]+\)/g, '#000000');
+                            // Strip modern shadows as they usually use lab/oklch
+                            css = css.replace(/--shadow:[^;]+;/g, '--shadow: none;');
+                            styleTags[i].innerHTML = css;
+                        }
+                    }
+                }
             });
 
             console.log('Canvas generated successfully');
@@ -172,22 +194,22 @@ export default function PortalDashboard() {
         ];
 
         return (
-            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-md animate-in fade-in duration-300">
-                <div className="bg-white text-slate-900 w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in duration-300">
-                    <div className="p-6 border-b flex justify-between items-center bg-gray-50/50">
+            <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[rgba(17,24,39,0.6)] backdrop-blur-md animate-in fade-in duration-300">
+                <div className="bg-white text-[#0f172a] w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-[0_25px_50px_-12px_rgba(0,0,0,0.25)] overflow-hidden flex flex-col animate-in zoom-in duration-300">
+                    <div className="p-6 border-b flex justify-between items-center bg-[#f9fafb]">
                         <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-lg bg-[#00AEEF]/10 flex items-center justify-center text-[#00AEEF]">
+                            <div className="w-8 h-8 rounded-lg bg-[#00AEEF1A] flex items-center justify-center text-[#00AEEF]">
                                 <Eye size={18} />
                             </div>
-                            <h2 className="font-black uppercase italic tracking-tighter text-gray-700">Previa de Factura</h2>
+                            <h2 className="font-black uppercase italic tracking-tighter text-[#374151]">Previa de Factura</h2>
                         </div>
-                        <button onClick={() => setIsPreviewOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+                        <button onClick={() => setIsPreviewOpen(false)} className="p-2 hover:bg-[#f3f4f6] rounded-full transition-colors text-[#9ca3af]">
                             <X size={20} />
                         </button>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto p-4 md:p-12 text-left bg-gray-100/50">
-                        <div ref={invoiceRef} className="max-w-xl mx-auto space-y-8 bg-white p-8 md:p-12 shadow-sm rounded-lg" style={{ backgroundColor: 'white' }}>
+                    <div className="flex-1 overflow-y-auto p-4 md:p-12 text-left bg-[#f3f4f680]">
+                        <div ref={invoiceRef} data-pdf-content="true" className="max-w-xl mx-auto space-y-8 bg-white p-8 md:p-12 rounded-lg border border-[#f3f4f6]" style={{ backgroundColor: '#ffffff' }}>
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-3xl font-black text-[#00AEEF] tracking-tighter italic leading-none">DIACOR GPS</h3>
@@ -261,14 +283,14 @@ export default function PortalDashboard() {
                         </div>
                     </div>
 
-                    <div className="p-8 bg-gray-50 border-t flex flex-col sm:flex-row justify-end gap-3 px-12">
-                        <button onClick={() => setIsPreviewOpen(false)} className="px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-gray-400 hover:bg-gray-200 transition-all font-sans">
+                    <div className="p-8 bg-[#f9fafb] border-t flex flex-col sm:flex-row justify-end gap-3 px-12">
+                        <button onClick={() => setIsPreviewOpen(false)} className="px-8 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-[#9ca3af] hover:bg-[#e5e7eb] transition-all font-sans">
                             Cerrar
                         </button>
                         <button
                             disabled={isGeneratingPdf}
                             onClick={() => handleDownloadPdf(selectedFactura)}
-                            className="px-10 py-4 rounded-xl bg-[#00AEEF] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0088CC] transition-all shadow-xl shadow-cyan-500/20 flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 font-sans"
+                            className="px-10 py-4 rounded-xl bg-[#00AEEF] text-white text-xs font-black uppercase tracking-widest hover:bg-[#0088CC] transition-all shadow-[0_20px_25px_-5px_rgba(6,182,212,0.2)] flex items-center justify-center gap-3 active:scale-95 disabled:opacity-50 font-sans"
                         >
                             {isGeneratingPdf ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
                             <span>Descargar PDF</span>
