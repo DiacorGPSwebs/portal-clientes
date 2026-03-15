@@ -590,17 +590,8 @@ export default function PortalDashboard() {
                                     className="w-full bg-[#00AEEF] hover:bg-[#0088CC] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 shadow-xl transition-all active:scale-95 disabled:opacity-50"
                                 >
                                     {isProcessingPayment ? <Loader2 size={20} className="animate-spin" /> : <CreditCard size={20} />}
-                                    <span>Pagar con Tarjeta</span>
+                                    <span>Ir a Pagar</span>
                                 </button>
-
-                                <a
-                                    href={`https://wa.me/50764712589?text=Hola,%20quiero%20pagar%20mi%20deuda%20de%20$${selectedAmount.toFixed(2)}%20(Placa%20${vehiculo.Placas})%20por%20Yappy`}
-                                    target="_blank"
-                                    className="w-full bg-[#FA6400] hover:bg-[#E55B00] text-white py-5 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center space-x-3 shadow-xl transition-all active:scale-95"
-                                >
-                                    <Wallet size={20} />
-                                    <span>Yappy - @DIACORGPS</span>
-                                </a>
                             </div>
                         </div>
                     </div>
